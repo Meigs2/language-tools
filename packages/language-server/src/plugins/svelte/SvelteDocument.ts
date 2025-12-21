@@ -135,8 +135,15 @@ export class SvelteDocument {
             },
             fileName: 'module.js'
         });
-        let res = this.parent.compiler.compileModule(result.outputText, 			{ dev: false,
-			filename: 'module.svelte.ts',
+
+        let fileName = 'module.svelte.ts'
+        if (this.getFilePath().endsWith('.js')) {
+            fileName = 'module.svelte.js'
+        }
+
+        let res = this.parent.compiler.compileModule(result.outputText, { 
+            dev: false,
+			filename: fileName,
 			experimental: {
 				async: true
 			}})

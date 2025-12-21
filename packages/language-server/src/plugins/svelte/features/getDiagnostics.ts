@@ -56,7 +56,7 @@ async function tryGetDiagnostics(
 ): Promise<Diagnostic[]> {
     let options = document.config?.compilerOptions;
     var isModule = false;
-    if (document.url.endsWith('.svelte.ts')) {
+    if (document.url.endsWith('.svelte.ts') || document.url.endsWith('.svelte.js')) {
         isModule = true;
     }
 
