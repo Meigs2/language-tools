@@ -72,7 +72,7 @@ async function tryGetDiagnostics(
             ignoreScriptWarnings = !!scriptAttr && scriptAttr !== 'ts';
         }
 
-        return (res.warnings || [])
+        let result = (res.warnings || [])
             .filter((warning) => settings[warning.code] !== 'ignore')
             .map((warning) => {
                 const start = warning.start || { line: 1, column: 0 };
@@ -99,6 +99,8 @@ async function tryGetDiagnostics(
                     ignoreTemplateWarnings
                 )
             );
+
+        return result;
     } catch (err) {
         return createParserErrorDiagnostic(err, document)
             .map((diag) => mapObjWithRangeToOriginal(transpiled, diag))

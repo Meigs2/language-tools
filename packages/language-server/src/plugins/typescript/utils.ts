@@ -66,7 +66,7 @@ export function getScriptKindFromAttributes(
 }
 
 export function isSvelteFilePath(filePath: string) {
-    return filePath.endsWith('.svelte');
+    return filePath.endsWith('.svelte') || filePath.endsWith('.svelte.ts') || filePath.endsWith('.svelte.js');
 }
 
 export function isVirtualSvelteFilePath(filePath: string) {

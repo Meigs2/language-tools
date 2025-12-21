@@ -4,7 +4,7 @@ import { dirname, join } from 'path';
 type _ts = typeof ts;
 
 export function isSvelteFilePath(filePath: string) {
-    return filePath.endsWith('.svelte');
+    return filePath.endsWith('.svelte') || filePath.endsWith('.svelte.ts') || filePath.endsWith('.svelte.js');
 }
 
 export function isVirtualSvelteFilePath(filePath: string) {

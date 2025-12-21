@@ -185,9 +185,11 @@ function init(modules: { typescript: typeof ts }): ts.server.PluginModule {
             });
         }
 
+        let projectFiles = ProjectSvelteFilesManager.getInstance(project.getProjectName())?.getFiles() ?? [];
+
         // let ts know project svelte files to do its optimization
         return svelteTsxFiles.concat(
-            ProjectSvelteFilesManager.getInstance(project.getProjectName())?.getFiles() ?? []
+            projectFiles
         );
     }
 

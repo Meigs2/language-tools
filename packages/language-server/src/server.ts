@@ -23,7 +23,8 @@ import {
     SemanticTokensRefreshRequest,
     InlayHintRefreshRequest,
     DidChangeWatchedFilesNotification,
-    RelativePattern
+    RelativePattern,
+    DidOpenTextDocumentParams
 } from 'vscode-languageserver';
 import { IPCMessageReader, IPCMessageWriter, createConnection } from 'vscode-languageserver/node';
 import { DiagnosticsManager } from './lib/DiagnosticsManager';
@@ -404,10 +405,13 @@ export function startServer(options?: LSOptions) {
         Logger.setDebug(settings.svelte?.['language-server']?.debug);
     });
 
-    connection.onDidOpenTextDocument((evt) => {
+    connection.onDidOpenTextDocument(onOpenDocument);
+    connection.onNotification('$/onDidOpenTsOrJsFile', onOpenDocument);
+
+    async function onOpenDocument(evt: DidOpenTextDocumentParams) {
         const document = docManager.openClientDocument(evt.textDocument);
         diagnosticsManager.scheduleUpdate(document);
-    });
+    }
 
     connection.onDidCloseTextDocument((evt) => docManager.closeDocument(evt.textDocument.uri));
     connection.onDidChangeTextDocument((evt) => {

@@ -22,7 +22,8 @@ import {
     RevealOutputChannelOn,
     TextDocumentEdit,
     TextDocumentPositionParams,
-    WorkspaceEdit as LSWorkspaceEdit
+    WorkspaceEdit as LSWorkspaceEdit,
+    DidOpenTextDocumentParams
 } from 'vscode-languageclient';
 import { LanguageClient, ServerOptions, TransportKind } from 'vscode-languageclient/node';
 import CompiledCodeContentProvider from './CompiledCodeContentProvider';
@@ -258,6 +259,7 @@ export function activateSvelteLanguageServer(context: ExtensionContext) {
     }
 
     addDidChangeTextDocumentListener(getLS);
+    addDidOpenTsOrJsFile(getLS);
 
     addFindFileReferencesListener(getLS, context);
     addFindComponentReferencesListener(getLS, context);
@@ -359,6 +361,26 @@ function addDidChangeTextDocumentListener(getLS: () => LanguageClient) {
     });
 }
 
+function addDidOpenTsOrJsFile(getLS: () => LanguageClient) {
+    // Only Svelte file changes are automatically notified through the inbuilt LSP
+    // because the extension says it's only responsible for Svelte files.
+    // Therefore we need to set this up for TS/JS files manually.
+    workspace.onDidOpenTextDocument((evt) => {
+        if ((evt.languageId === 'typescript' && evt.fileName.endsWith('.svelte.ts')) || (evt.languageId === 'javascript' && evt.fileName.endsWith('.svelte.js'))) {
+            var res: DidOpenTextDocumentParams = {
+                textDocument: {
+                    languageId: evt.languageId,
+                    text: evt.getText(),
+                    uri: evt.uri.toString(),
+                    version: evt.version,
+                }
+            }
+
+            getLS().sendNotification('$/onDidOpenTsOrJsFile', res);
+        }
+    });
+}
+
 function addRenameFileListener(getLS: () => LanguageClient) {
     workspace.onDidRenameFiles(async (evt) => {
         const oldUri = evt.files[0].oldUri.toString(true);
@@ -368,7 +390,7 @@ function addRenameFileListener(getLS: () => LanguageClient) {
         // and not files. So in case the URI does not contain a '.', check for imports to update.
         if (
             lastPart.includes('.') &&
-            !['.ts', '.js', '.json', '.svelte'].some((ending) => lastPart.endsWith(ending))
+            !['.ts', '.js', '.json', '.svelte', '.svelte.ts', '.svelte.js'].some((ending) => lastPart.endsWith(ending))
         ) {
             return;
         }

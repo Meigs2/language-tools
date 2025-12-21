@@ -155,7 +155,7 @@ export class ProjectSvelteFilesManager {
         return this.typescript.sys
             .readDirectory(
                 this.project.getCurrentDirectory() || process.cwd(),
-                ['.svelte'],
+                ['.svelte', '.svelte.ts', '.svelte.js'],
                 exclude,
                 include
             )
