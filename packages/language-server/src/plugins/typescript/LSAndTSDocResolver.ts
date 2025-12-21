@@ -25,7 +25,7 @@ import {
 } from './service';
 import { createProjectService } from './serviceCache';
 import { GlobalSnapshotsManager, SnapshotManager } from './SnapshotManager';
-import { isSubPath } from './utils';
+import { isSubPath, isSvelteFilePath } from './utils';
 import { FileMap, FileSet } from '../../lib/documents/fileCollection';
 
 interface LSAndTSDocResolverOptions {
@@ -289,7 +289,12 @@ export class LSAndTSDocResolver {
         path: string,
         changes?: TextDocumentContentChangeEvent[]
     ): Promise<void> {
-        await this.updateExistingFile(path, (service) => service.updateTsOrJsFile(path, changes));
+        if (isSvelteFilePath(path)) {
+            this.updateExistingSvelteFile(path);
+        }
+        else {
+            await this.updateExistingFile(path, (service) => service.updateTsOrJsFile(path, changes));
+        }
     }
 
     async updateExistingSvelteFile(path: string): Promise<void> {

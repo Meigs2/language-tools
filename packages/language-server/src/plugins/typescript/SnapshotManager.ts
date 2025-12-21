@@ -114,9 +114,7 @@ export class SnapshotManager {
         ts.Extension.Cts,
         ts.Extension.Tsx,
         ts.Extension.Json,
-        '.svelte',
-        '.svelte.ts',
-        '.svelte.js'
+        '.svelte'
     ];
 
     constructor(

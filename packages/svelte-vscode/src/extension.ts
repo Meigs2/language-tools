@@ -60,12 +60,12 @@ export function activate(context: ExtensionContext) {
         })
     );
 
-    if (workspace.textDocuments.some((doc) => doc.languageId === 'svelte')) {
+    if (workspace.textDocuments.some((doc) => doc.languageId === 'svelte' || doc.fileName.endsWith('.svelte.ts') || doc.fileName.endsWith('.svelte.js'))) {
         lsApi = activateSvelteLanguageServer(context);
         tsPlugin.askToEnable();
     } else {
         const onTextDocumentListener = workspace.onDidOpenTextDocument((doc) => {
-            if (doc.languageId === 'svelte') {
+            if (doc.languageId === 'svelte' || doc.fileName.endsWith('.svelte.ts') || doc.fileName.endsWith('.svelte.js')) {
                 lsApi = activateSvelteLanguageServer(context);
                 tsPlugin.askToEnable();
                 onTextDocumentListener.dispose();
@@ -371,7 +371,7 @@ function addDidOpenTsOrJsFile(getLS: () => LanguageClient) {
                 textDocument: {
                     languageId: evt.languageId,
                     text: evt.getText(),
-                    uri: evt.uri.toString(),
+                    uri: evt.uri.toString(true),
                     version: evt.version,
                 }
             }
