@@ -233,7 +233,8 @@ export class TypeScriptPlugin
             return [];
         }
 
-        return this.diagnosticsProvider.getDiagnostics(document, cancellationToken);
+        let diag = await this.diagnosticsProvider.getDiagnostics(document, cancellationToken);
+        return diag;
     }
 
     async doHover(document: Document, position: Position): Promise<Hover | null> {

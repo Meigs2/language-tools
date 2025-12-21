@@ -65,6 +65,7 @@ export class DiagnosticsProviderImpl implements DiagnosticsProvider {
 
         if (
             ['coffee', 'coffeescript'].includes(document.getLanguageAttribute('script')) ||
+            document.getFilePath()?.endsWith(".svelte.ts") ||
             cancellationToken?.isCancellationRequested
         ) {
             return [];

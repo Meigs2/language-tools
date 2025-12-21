@@ -15,6 +15,9 @@ import { Logger } from '../../../logger';
 import { CompilerWarningsSettings } from '../../../ls-config';
 import { getLastPartOfPath, moveRangeStartToEndIfNecessary } from '../../../utils';
 import { SvelteDocument, TranspileErrorSource } from '../SvelteDocument';
+import { doc } from 'prettier';
+import { CompileResult } from 'svelte/compiler';
+import ts from "typescript"
 
 /**
  * Returns diagnostics from the svelte compiler.
@@ -51,13 +54,24 @@ async function tryGetDiagnostics(
     settings: CompilerWarningsSettings,
     cancellationToken: CancellationToken | undefined
 ): Promise<Diagnostic[]> {
+    let options = document.config?.compilerOptions;
+    var isModule = false;
+    if (document.url.endsWith('.svelte.ts')) {
+        isModule = true;
+    }
+
     const transpiled = await svelteDoc.getTranspiled();
     if (cancellationToken?.isCancellationRequested) {
         return [];
     }
 
     try {
-        const res = await svelteDoc.getCompiled();
+        let res: CompileResult
+        if (isModule) {
+            res = await svelteDoc.getCompiledModule();
+        } else {
+            res = await svelteDoc.getCompiled();
+        }
         if (cancellationToken?.isCancellationRequested) {
             return [];
         }

@@ -1,5 +1,6 @@
 import { TraceMap } from '@jridgewell/trace-mapping';
 import type { compile } from 'svelte/compiler';
+import ts from 'typescript';
 // @ts-ignore
 import { CompileOptions } from 'svelte/types/compiler/interfaces';
 // @ts-ignore
@@ -85,6 +86,25 @@ export class SvelteDocument {
         return this.transpiledDoc;
     }
 
+    async getTranspiledModule(): Promise<ITranspiledSvelteDocument> {
+        if (!this.transpiledDoc) {
+            const [major, minor] = this.parent.getSvelteVersion();
+
+            if (major > 3 || (major === 3 && minor >= 32)) {
+                this.transpiledDoc = TranspiledSvelteDocument.create(
+                    this.parent,
+                    await this.config
+                );
+            } else {
+                this.transpiledDoc = FallbackTranspiledSvelteDocument.create(
+                    this.parent,
+                    (await this.config)?.preprocess
+                );
+            }
+        }
+        return this.transpiledDoc;
+    }
+
     async getCompiled(): Promise<SvelteCompileResult> {
         if (!this.compileResult) {
             this.compileResult = this.getCompiledWith((await this.config)?.compilerOptions);
@@ -93,8 +113,34 @@ export class SvelteDocument {
         return this.compileResult;
     }
 
+    async getCompiledModule(): Promise<SvelteCompileResult> {
+        if (!this.compileResult) {
+            this.compileResult = this.getCompiledModuleWith((await this.config)?.compilerOptions);
+        }
+
+        return this.compileResult;
+    }
+
     async getCompiledWith(options: CompileOptions = {}): Promise<SvelteCompileResult> {
         return this.parent.compiler.compile((await this.getTranspiled()).getText(), options);
+    }
+
+    async getCompiledModuleWith(options: CompileOptions = {}): Promise<SvelteCompileResult> {
+        const tsCode = (await this.getTranspiledModule()).getText();
+        const result = ts.transpileModule(tsCode, {
+            compilerOptions: {
+                target: ts.ScriptTarget.ESNext,
+                module: ts.ModuleKind.ESNext,
+                removeComments: false,
+            },
+            fileName: 'module.js'
+        });
+        let res = this.parent.compiler.compileModule(result.outputText, 			{ dev: false,
+			filename: 'module.svelte.ts',
+			experimental: {
+				async: true
+			}})
+        return res;
     }
 }
 
