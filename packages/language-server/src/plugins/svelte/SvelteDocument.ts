@@ -21,6 +21,7 @@ import {
 } from '../../lib/documents';
 import { SvelteConfig } from '../../lib/documents/configLoader';
 import { getLastPartOfPath, isNotNullOrUndefined } from '../../utils';
+import tsBlankSpace from "ts-blank-space";
 
 export type SvelteCompileResult = ReturnType<typeof compile>;
 
@@ -126,22 +127,15 @@ export class SvelteDocument {
     }
 
     async getCompiledModuleWith(options: CompileOptions = {}): Promise<SvelteCompileResult> {
-        const tsCode = (await this.getTranspiledModule()).getText();
-        const result = ts.transpileModule(tsCode, {
-            compilerOptions: {
-                target: ts.ScriptTarget.ESNext,
-                module: ts.ModuleKind.ESNext,
-                removeComments: false,
-            },
-            fileName: 'module.js'
-        });
+        let tsCode = (await this.getTranspiledModule()).getText();
 
-        let fileName = 'module.svelte.ts'
-        if (this.getFilePath().endsWith('.js')) {
-            fileName = 'module.svelte.js'
+        let fileName = 'module.svelte.js'
+        if (this.getFilePath().endsWith('.ts')) {
+            fileName = 'module.svelte.ts'
+            tsCode = tsBlankSpace(tsCode);
         }
 
-        let res = this.parent.compiler.compileModule(result.outputText, { 
+        let res = this.parent.compiler.compileModule(tsCode, { 
             dev: false,
 			filename: fileName,
 			experimental: {
